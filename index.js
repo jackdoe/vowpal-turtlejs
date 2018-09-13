@@ -1,5 +1,3 @@
-var exports = module.exports = {}
-
 var fs = require('fs');
 var readline = require('readline');
 

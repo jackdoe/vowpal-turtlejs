@@ -1,0 +1,15 @@
+{
+  "name": "turtlejs",
+  "version": "1.0.0",
+  "description": "vowpal wabbit --readable_model parser and predictor",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "keywords": [
+    "machine-learning",
+    "vowpal-wabbit"
+  ],
+  "author": "borislav nikolov <jack@sofialondonmoskva.com>",
+  "license": "ISC"
+}

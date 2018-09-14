@@ -58,12 +58,6 @@ var murmurhash3_32_gc = function murmurhash3_32_gc(key, seed) {
     return h1 >>> 0;
 }
 
-var zero = function(x) {
-    for (let i = 0; i < x.length; i++) {
-        x[i] = 0;
-    }    
-}
-
 var readModel = function readModel(file, cb) {
     const instream = fs.createReadStream(file)
     var rl = readline.createInterface(instream)
@@ -78,8 +72,7 @@ var readModel = function readModel(file, cb) {
         if (inHeader) {
             if (line.startsWith("bits:")) {
                 bits = parseInt(line.split(":")[1])
-                hash = new Array(1 << bits);
-                zero(hash);
+                hash = new Float32Array(1 << bits);
             }
             if (line.startsWith('options:')) {
                 let splitted = line.split(':');
@@ -109,8 +102,7 @@ var readModel = function readModel(file, cb) {
     });
 }
 var predict = function predict(model, request) {
-    var out = new Array(model.oaa);
-    zero(out)
+    var out = new Float32Array(model.oaa);
     for (let ns of request.namespaces) {
         let nsHash = murmurhash3_32_gc(ns.name, 0);
         for (let f of ns.features) {

@@ -99,10 +99,13 @@ var readModel = function readModel(file, cb) {
         }
     });
     rl.on('close', function (line) {
-        if (oaa != 1) {
-            throw new Error('not supported');
+        let multiClassBits = 0;
+        let ml = oaa;
+        while (ml > 0) {
+            multiClassBits++;
+            ml >>= 1;
         }
-        cb({hash: hash, oaa: oaa, multiclassBits: 0, mask: (1<< bits) - 1})
+        cb({hash: hash, oaa: oaa, multiclassBits: multiClassBits, mask: (1<< bits) - 1})
     });
 }
 var predict = function predict(model, request) {

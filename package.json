@@ -1,6 +1,6 @@
 {
-  "name": "turtlejs",
-  "version": "1.0.0",
+  "name": "vowpal-turtle",
+  "version": "0.0.1",
   "description": "vowpal wabbit --readable_model parser and predictor",
   "main": "index.js",
   "scripts": {
@@ -10,6 +10,7 @@
     "machine-learning",
     "vowpal-wabbit"
   ],
+  "homepage": "https://github.com/jackdoe/vowpal-turtlejs",
   "author": "borislav nikolov <jack@sofialondonmoskva.com>",
   "license": "ISC"
 }

@@ -118,7 +118,7 @@ var readModel = function readModel(file, cb) {
  * makes a prediction from a request and a model
  * the request is { namespaces: [{name: 'some_namespace', features: [{name: 'some_feature', value: 1}]}]}
  * @example
- * var vw = require('turtlejs')
+ * var vw = require('vowpalturtle')
  * vw.readModel('readable_model.txt', (model) => {
  *     var prediction = vw.predict(model, {
  *         namespaces: [{

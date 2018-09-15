@@ -10,7 +10,10 @@
 
 ## readModel
 
-[index.js:68-115][6]
+[index.js:70-117][6]
+
+it does not support quadratic/cubic interractions, ngrams/skips, linking functions rather than identity
+it basically only supports(for now) cat data | vw --readable_model out.txt [-oaa]
 
 ### Parameters
 
@@ -19,7 +22,7 @@
 
 ## predict
 
-[index.js:145-158][9]
+[index.js:147-160][9]
 
 makes a prediction from a request and a model
 the request is { namespaces: \[{name: 'some_namespace', features: [{name: 'some_feature', value: 1}]}]}
@@ -65,13 +68,13 @@ Returns **[Float32Array][11]** prediction, one prediction per class (depending o
 
 [5]: #examples
 
-[6]: https://github.com/jackdoe/turtlejs/blob/f84afe2fab5767925dc0c95d9b8e7d444cd04966/index.js#L68-L115 "Source code on GitHub"
+[6]: https://github.com/jackdoe/turtlejs/blob/b21a0a0d19d42c12062fdf2f8f34744797867470/index.js#L70-L117 "Source code on GitHub"
 
 [7]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
 
 [8]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
 
-[9]: https://github.com/jackdoe/turtlejs/blob/f84afe2fab5767925dc0c95d9b8e7d444cd04966/index.js#L145-L158 "Source code on GitHub"
+[9]: https://github.com/jackdoe/turtlejs/blob/b21a0a0d19d42c12062fdf2f8f34744797867470/index.js#L147-L160 "Source code on GitHub"
 
 [10]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
 

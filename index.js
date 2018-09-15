@@ -62,6 +62,8 @@ var murmurhash3_32_gc = function murmurhash3_32_gc(key, seed) {
     return h1 >>> 0;
 }
 /**
+ * it does not support quadratic/cubic interractions, ngrams/skips, linking functions rather than identity
+ * it basically only supports(for now) cat data | vw --readable_model out.txt [-oaa]
  * @param {String} file - vw --readable_file output
  * @param {Function} cb - callback once the file is loaded, takes the loaded model as only argument
  */

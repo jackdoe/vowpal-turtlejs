@@ -32,7 +32,7 @@ the request is { namespaces: \[{name: 'some_namespace', features: [{name: 'some_
 ### Examples
 
 ```javascript
-var vw = require('vowpalturtle')
+var vw = require('vowpal-turtle')
 vw.readModel('readable_model.txt', (model) => {
     var prediction = vw.predict(model, {
         namespaces: [{
@@ -65,13 +65,13 @@ Returns **[Float32Array][11]** prediction, one prediction per class (depending o
 
 [5]: #examples
 
-[6]: https://github.com/jackdoe/turtlejs/blob/48d32d2931e9f6ddfa58c59f1290718b2259cf16/index.js#L68-L115 "Source code on GitHub"
+[6]: https://github.com/jackdoe/turtlejs/blob/f84afe2fab5767925dc0c95d9b8e7d444cd04966/index.js#L68-L115 "Source code on GitHub"
 
 [7]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
 
 [8]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
 
-[9]: https://github.com/jackdoe/turtlejs/blob/48d32d2931e9f6ddfa58c59f1290718b2259cf16/index.js#L145-L158 "Source code on GitHub"
+[9]: https://github.com/jackdoe/turtlejs/blob/f84afe2fab5767925dc0c95d9b8e7d444cd04966/index.js#L145-L158 "Source code on GitHub"
 
 [10]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
 

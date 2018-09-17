@@ -67,8 +67,12 @@ var murmurhash3_32_gc = function murmurhash3_32_gc(key, seed) {
  * @param {String} file - vw --readable_file output
  * @param {Function} cb - callback once the file is loaded, takes the loaded model as only argument
  */
-var readModel = function readModel(file, cb) {
+var readModelFromFile = function readModelFromFile(file, cb) {
     const instream = fs.createReadStream(file)
+    return readModel(instream, cb)
+}
+
+var readModel = function readModel(instream, cb) {
     var rl = readline.createInterface(instream)
 
     let loaded = undefined;
@@ -77,7 +81,6 @@ var readModel = function readModel(file, cb) {
     let oaa = 1;
     let bits = 0;
     rl.on('line', function (line) {
-
         if (inHeader) {
             if (line.startsWith("bits:")) {
                 bits = parseInt(line.split(":")[1])
@@ -160,5 +163,6 @@ var predict = function predict(model, request) {
 }
 module.exports = {
     readModel: readModel,
+    readModelFromFile: readModelFromFile,
     predict: predict,
 };

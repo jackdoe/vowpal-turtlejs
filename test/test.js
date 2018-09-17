@@ -1,7 +1,7 @@
 'use strict';
 var vw = require('../')
 var assert = require('assert')
-vw.readModel(__dirname + "/readable_model.txt", (model) => {
+vw.readModelFromFile(__dirname + "/readable_model.txt", (model) => {
     var out = vw.predict(model, {
         namespaces: [{
             name: 'f',

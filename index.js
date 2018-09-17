@@ -1,6 +1,6 @@
 'use strict';
 
-var readline = require('readline');
+var readline = undefined;
 
 /*
  * JS Implementation of MurmurHash3 (r136) (as of May 20, 2011)
@@ -73,41 +73,49 @@ var readModelFromFile = function readModelFromFile(file, cb) {
         fs = require('fs');
 
     const instream = fs.createReadStream(file)
-    return readModel(instream, cb)
+    return readModelFromStream(instream, cb)
 }
 
-var readModel = function readModel(instream, cb) {
-    let rl = readline.createInterface(instream)
-
+var readModelFromStream = function readModel(instream, cb) {
     let loaded = undefined;
     let inHeader = true;
     let hash = [];
     let oaa = 1;
     let bits = 0;
-    rl.on('line', function (line) {
-        if (inHeader) {
-            if (line.startsWith("bits:")) {
-                bits = parseInt(line.split(":")[1])
-                hash = new Float32Array(1 << bits);
-            }
-            if (line.startsWith('options:')) {
-                let splitted = line.split(':');
-                let options = splitted[1].split(" ");
-                for (let i = 0; i < options.length; i += 2) {
-                    if (options[i] == '--oaa') {
-                        oaa = parseInt(options[i + 1])
+
+    var buf = ''
+    instream.on('data', function (raw) {
+        // XXX: parse line by line
+        buf += raw
+    });
+
+
+    instream.on('end', function (line) {
+        let lines = buf.split("\n");
+        for (let line of lines) {
+            if (inHeader) {
+                if (line.startsWith("bits:")) {
+                    bits = parseInt(line.split(":")[1])
+                    hash = new Float32Array(1 << bits);
+                }
+                if (line.startsWith('options:')) {
+                    let splitted = line.split(':');
+                    let options = splitted[1].split(" ");
+                    for (let i = 0; i < options.length; i += 2) {
+                        if (options[i] == '--oaa') {
+                            oaa = parseInt(options[i + 1])
+                        }
                     }
                 }
+                if (line == ":0") {
+                    inHeader = false;
+                }
+            } else {
+                var splitted = line.split(":")
+                hash[parseInt(splitted[0])] = parseFloat(splitted[1])
             }
-            if (line == ":0") {
-                inHeader = false;
-            }
-        } else {
-            var splitted = line.split(":")
-            hash[parseInt(splitted[0])] = parseFloat(splitted[1])
         }
-    });
-    rl.on('close', function (line) {
+
         let multiClassBits = 0;
         let ml = oaa;
         while (ml > 0) {
@@ -166,7 +174,7 @@ var predict = function predict(model, request) {
     return out;
 }
 module.exports = {
-    readModel: readModel,
+    readModelFromStream: readModelFromStream,
     readModelFromFile: readModelFromFile,
     predict: predict,
 };

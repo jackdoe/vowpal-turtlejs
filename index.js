@@ -76,58 +76,63 @@ var readModelFromFile = function readModelFromFile(file, cb) {
     return readModelFromStream(instream, cb)
 }
 
-var readModelFromStream = function readModel(instream, cb) {
+var readModelFromString = function readModelFromString(buf, cb) {
     let loaded = undefined;
     let inHeader = true;
     let hash = [];
     let oaa = 1;
     let bits = 0;
 
+    let lines = buf.split("\n");
+    for (let line of lines) {
+        if (inHeader) {
+            if (line.startsWith("bits:")) {
+                bits = parseInt(line.split(":")[1])
+                hash = new Float32Array(1 << bits);
+            }
+            if (line.startsWith('options:')) {
+                let splitted = line.split(':');
+                let options = splitted[1].split(" ");
+                for (let i = 0; i < options.length; i += 2) {
+                    if (options[i] == '--oaa') {
+                        oaa = parseInt(options[i + 1])
+                    }
+                }
+            }
+            if (line == ":0") {
+                inHeader = false;
+            }
+        } else {
+            var splitted = line.split(":")
+            hash[parseInt(splitted[0])] = parseFloat(splitted[1])
+        }
+    }
+
+    let multiClassBits = 0;
+    let ml = oaa;
+    while (ml > 0) {
+        multiClassBits++;
+        ml >>= 1;
+    }
+
+    cb({
+        hash: hash,
+        oaa: oaa,
+        multiclassBits: multiClassBits,
+        mask: (1 << bits) - 1
+    })
+
+
+}
+var readModelFromStream = function readModelFromStream(instream, cb) {
     var buf = ''
     instream.on('data', function (raw) {
         // XXX: parse line by line
         buf += raw
     });
 
-
     instream.on('end', function (line) {
-        let lines = buf.split("\n");
-        for (let line of lines) {
-            if (inHeader) {
-                if (line.startsWith("bits:")) {
-                    bits = parseInt(line.split(":")[1])
-                    hash = new Float32Array(1 << bits);
-                }
-                if (line.startsWith('options:')) {
-                    let splitted = line.split(':');
-                    let options = splitted[1].split(" ");
-                    for (let i = 0; i < options.length; i += 2) {
-                        if (options[i] == '--oaa') {
-                            oaa = parseInt(options[i + 1])
-                        }
-                    }
-                }
-                if (line == ":0") {
-                    inHeader = false;
-                }
-            } else {
-                var splitted = line.split(":")
-                hash[parseInt(splitted[0])] = parseFloat(splitted[1])
-            }
-        }
-
-        let multiClassBits = 0;
-        let ml = oaa;
-        while (ml > 0) {
-            multiClassBits++;
-            ml >>= 1;
-        }
-        cb({
-            hash: hash,
-            oaa: oaa,
-            multiclassBits: multiClassBits,
-            mask: (1 << bits) - 1
-        })
+        return readModelFromString(buf,cb)
     });
 }
 
@@ -174,8 +179,16 @@ var predict = function predict(model, request) {
     return out;
 }
 
-(module || {}).exports = {
-    readModelFromStream: readModelFromStream,
-    readModelFromFile: readModelFromFile,
-    predict: predict,
-};
+if (typeof window !== 'undefined') {
+    window.vw = {
+        readModelFromStream: readModelFromStream,
+        readModelFromFile: readModelFromFile,
+        predict: predict,
+    }
+} else {
+    module.exports = {
+        readModelFromStream: readModelFromStream,
+        readModelFromFile: readModelFromFile,
+        predict: predict,
+    };
+}

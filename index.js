@@ -1,5 +1,5 @@
 'use strict';
-var fs = require('fs');
+
 var readline = require('readline');
 
 /*
@@ -61,6 +61,7 @@ var murmurhash3_32_gc = function murmurhash3_32_gc(key, seed) {
 
     return h1 >>> 0;
 }
+var fs = undefined
 /**
  * it does not support quadratic/cubic interractions, ngrams/skips, linking functions rather than identity
  * it basically only supports(for now) cat data | vw --readable_model out.txt [-oaa]
@@ -68,12 +69,15 @@ var murmurhash3_32_gc = function murmurhash3_32_gc(key, seed) {
  * @param {Function} cb - callback once the file is loaded, takes the loaded model as only argument
  */
 var readModelFromFile = function readModelFromFile(file, cb) {
+    if (!fs)
+        fs = require('fs');
+
     const instream = fs.createReadStream(file)
     return readModel(instream, cb)
 }
 
 var readModel = function readModel(instream, cb) {
-    var rl = readline.createInterface(instream)
+    let rl = readline.createInterface(instream)
 
     let loaded = undefined;
     let inHeader = true;

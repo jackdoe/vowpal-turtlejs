@@ -173,7 +173,8 @@ var predict = function predict(model, request) {
     }
     return out;
 }
-module.exports = {
+
+(module || {}).exports = {
     readModelFromStream: readModelFromStream,
     readModelFromFile: readModelFromFile,
     predict: predict,

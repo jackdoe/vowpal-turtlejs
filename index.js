@@ -183,6 +183,7 @@ if (typeof window !== 'undefined') {
     window.vw = {
         readModelFromStream: readModelFromStream,
         readModelFromFile: readModelFromFile,
+        readModelFromString: readModelFromString,
         predict: predict,
     }
 }
@@ -190,6 +191,7 @@ if (typeof module !== 'undefined') {
     module.exports = {
         readModelFromStream: readModelFromStream,
         readModelFromFile: readModelFromFile,
+        readModelFromString: readModelFromString,
         predict: predict,
     };
 }

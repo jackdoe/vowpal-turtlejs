@@ -1,6 +1,6 @@
 {
   "name": "vowpal-turtle",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "vowpal wabbit --readable_model parser and predictor",
   "main": "index.js",
   "scripts": {

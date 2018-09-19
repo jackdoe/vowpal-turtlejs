@@ -1,14 +1,24 @@
 'use strict';
 
 var readline = undefined;
-
+const intercept = 11650396;
+const FNV_prime = 16777619;
 /*
  * JS Implementation of MurmurHash3 (r136) (as of May 20, 2011)
  * @author <a href="mailto:gary.court@gmail.com">Gary Court</a>
  * @author <a href="mailto:aappleby@gmail.com">Austin Appleby</a>
  */
 var murmurhash3_32_gc = function murmurhash3_32_gc(key, seed) {
-    var remainder, bytes, h1, h1b, c1, c1b, c2, c2b, k1, i;
+    var remainder,
+        bytes,
+        h1,
+        h1b,
+        c1,
+        c1b,
+        c2,
+        c2b,
+        k1,
+        i;
 
     remainder = key.length & 3; // key.length % 4
     bytes = key.length - remainder;
@@ -18,11 +28,7 @@ var murmurhash3_32_gc = function murmurhash3_32_gc(key, seed) {
     i = 0;
 
     while (i < bytes) {
-        k1 =
-            ((key.charCodeAt(i) & 0xff)) |
-            ((key.charCodeAt(++i) & 0xff) << 8) |
-            ((key.charCodeAt(++i) & 0xff) << 16) |
-            ((key.charCodeAt(++i) & 0xff) << 24);
+        k1 = ((key.charCodeAt(i) & 0xff)) | ((key.charCodeAt(++i) & 0xff) << 8) | ((key.charCodeAt(++i) & 0xff) << 16) | ((key.charCodeAt(++i) & 0xff) << 24);
         ++i;
 
         k1 = ((((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16))) & 0xffffffff;
@@ -76,13 +82,15 @@ var readModelFromFile = function readModelFromFile(file, cb) {
     return readModelFromStream(instream, cb)
 }
 
+const logistic = (o) => (1. / (1. + Math.exp(-o)))
+const identity = (o) => o
+
 var readModelFromString = function readModelFromString(buf, cb) {
-    let loaded = undefined;
     let inHeader = true;
     let hash = [];
     let oaa = 1;
     let bits = 0;
-
+    let quadratic = undefined
     let lines = buf.split("\n");
     for (let line of lines) {
         if (inHeader) {
@@ -96,6 +104,24 @@ var readModelFromString = function readModelFromString(buf, cb) {
                 for (let i = 0; i < options.length; i += 2) {
                     if (options[i] == '--oaa') {
                         oaa = parseInt(options[i + 1])
+                    }
+                }
+            }
+            if (line.startsWith("options:")) {
+                let opts = line
+                    .split(":")[1]
+                    .trim()
+                    .split(" ")
+
+                for (let i = 0; i < opts.length; i += 2) {
+                    let key = opts[i]
+                    let value = opts[i + 1]
+                    if (key === "--quadratic") {
+                        if (!quadratic)
+                            quadratic = {};
+
+                        let startsWith = quadratic[value.charAt(0)] || (quadratic[value.charAt(0)] = [])
+                        startsWith.push(value.charAt(1))
                     }
                 }
             }
@@ -116,14 +142,15 @@ var readModelFromString = function readModelFromString(buf, cb) {
     }
 
     cb({
+        quadratic: quadratic,
         hash: hash,
+        link: logistic,
         oaa: oaa,
         multiclassBits: multiClassBits,
         mask: (1 << bits) - 1
     })
-
-
 }
+
 var readModelFromStream = function readModelFromStream(instream, cb) {
     var buf = ''
     instream.on('data', function (raw) {
@@ -132,13 +159,18 @@ var readModelFromStream = function readModelFromStream(instream, cb) {
     });
 
     instream.on('end', function (line) {
-        return readModelFromString(buf,cb)
+        return readModelFromString(buf, cb)
     });
+}
+
+var getBucket = function (multiClassBits, featureHash, klass, mask) {
+    return ((featureHash << multiClassBits) | klass) & mask;
 }
 
 /**
  * makes a prediction from a request and a model
  * the request is { namespaces: [{name: 'some_namespace', features: [{name: 'some_feature', value: 1}]}]}
+ * it also mutates the request computing the hashes so they can be reused
  * @example
  * var vw = require('vowpal-turtle')
  * vw.readModel('readable_model.txt', (model) => {
@@ -159,23 +191,83 @@ var readModelFromStream = function readModelFromStream(instream, cb) {
  *     });
  *     console.log(prediction)
  * });
- * 
+ *
  * @param {Object} model - mode loaded from @see readModel
  * @param {Object} request - {.namespaces - array of namespaces, each of which has array of features}
+ * @param {Function} link - link function, by default vw.logistic
  * @returns {Float32Array} prediction, one prediction per class (depending on oaa, by default 1)
  */
-var predict = function predict(model, request) {
+var predict = function predict(model, request, link) {
+    link = link || logistic
     var out = new Float32Array(model.oaa);
     for (let ns of request.namespaces) {
-        let nsHash = murmurhash3_32_gc(ns.name, 0);
+        let nsHash = ns.compudedHash
+            ? ns.hash
+            : murmurhash3_32_gc(ns.name, 0);
+        ns.compudedHash = true;
+        ns.hash = nsHash;
+
         for (let f of ns.features) {
-            let featureHash = murmurhash3_32_gc(f.name, nsHash);
+            let featureHash = f.computedHash
+                ? f.hash
+                : murmurhash3_32_gc(f.name, nsHash);
+            f.computedHash = true;
+            f.hash = featureHash;
+
             for (let klass = 0; klass < model.oaa; klass++) {
-                let bucket = ((featureHash << model.multiClassBits) | klass) & model.mask;
+                let bucket = getBucket(this.multiClassBits, featureHash, klass, model.mask)
                 out[klass] += f.value * model.hash[bucket];
             }
         }
     }
+
+    if (model.quadratic) {
+        let perChar = {}
+        for (let ns of request.namespaces) {
+            let x = perChar[
+                ns
+                    .name
+                    .charAt(0)
+            ] || (perChar[
+                ns
+                    .name
+                    .charAt(0)
+            ] = [])
+            x.push(ns)
+        }
+
+        for (let nsA of request.namespaces) {
+            let nasInterractions = model.quadratic[
+                nsA
+                    .name
+                    .charAt(0)
+            ] || [];
+            for (let interraction of nasInterractions) {
+                let startsWith = perChar[interraction]
+                if (startsWith) {
+                    for (let nsB of startsWith) {
+                        for (let featureA of nsA.features) {
+                            for (let featureB of nsB.features) {
+                                let fnv = ((featureA.hash * FNV_prime) ^ featureB.hash)
+                                for (let klass = 0; klass < model.oaa; klass++) {
+                                    let bucket = getBucket(this.multiClassBits, fnv, klass, model.mask)
+                                    out[klass] += featureA.value * featureB.value * model.hash[bucket];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (let klass = 0; klass < model.oaa; klass++) {
+        let bucket = getBucket(this.multiClassBits, intercept, klass, model.mask)
+        out[klass] += model.hash[bucket];
+
+        out[klass] = link(out[klass])
+    }
+
     return out;
 }
 
@@ -184,7 +276,9 @@ if (typeof window !== 'undefined') {
         readModelFromStream: readModelFromStream,
         readModelFromFile: readModelFromFile,
         readModelFromString: readModelFromString,
-        predict: predict,
+        logistic: logistic,
+        identity: identity,
+        predict: predict
     }
 }
 if (typeof module !== 'undefined') {
@@ -192,6 +286,8 @@ if (typeof module !== 'undefined') {
         readModelFromStream: readModelFromStream,
         readModelFromFile: readModelFromFile,
         readModelFromString: readModelFromString,
-        predict: predict,
+        logistic: logistic,
+        identity: identity,
+        predict: predict
     };
 }

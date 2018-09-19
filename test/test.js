@@ -1,24 +1,36 @@
 'use strict';
 var vw = require('../')
 var assert = require('assert')
-vw.readModelFromFile(__dirname + "/readable_model.txt", (model) => {
+vw.readModelFromFile(__dirname + "/readable_model_ab.txt", (model) => {
     var out = vw.predict(model, {
-        namespaces: [{
-            name: 'f',
-            features: [{
+        namespaces: [
+            {
                 name: 'a',
-                value: 1
-            }, {
+                features: [
+                    {
+                        name: 'x',
+                        value: 1
+                    },
+                    {
+                        name: 'z',
+                        value: 1
+                    }                    
+                ]
+            },
+            {
                 name: 'b',
-                value: 1
-            }, {
-                name: 'c',
-                value: 1
-            }, {
-                name: 'odd=-1',
-                value: 1
-            }]
-        }]
-    });
-    assert.equal(out[0], -1.0142035484313965);
+                features: [
+                    {
+                        name: 'x1',
+                        value: 1
+                    },
+                    {
+                        name: 'z1',
+                        value: 1
+                    }                    
+                ]
+            }            
+        ]
+    }, vw.identity);
+    assert.equal(out[0], -0.06566070020198822);
 });

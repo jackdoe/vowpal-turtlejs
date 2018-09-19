@@ -185,7 +185,8 @@ if (typeof window !== 'undefined') {
         readModelFromFile: readModelFromFile,
         predict: predict,
     }
-} else {
+}
+if (typeof module !== 'undefined') {
     module.exports = {
         readModelFromStream: readModelFromStream,
         readModelFromFile: readModelFromFile,

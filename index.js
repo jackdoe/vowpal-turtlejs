@@ -264,7 +264,6 @@ var predict = function predict(model, request, link) {
 if (typeof window !== 'undefined') {
     window.vw = {
         readModelFromStream: readModelFromStream,
-        readModelFromFile: readModelFromFile,
         readModelFromString: readModelFromString,
         logistic: logistic,
         identity: identity,
@@ -274,7 +273,6 @@ if (typeof window !== 'undefined') {
 if (typeof module !== 'undefined') {
     module.exports = {
         readModelFromStream: readModelFromStream,
-        readModelFromFile: readModelFromFile,
         readModelFromString: readModelFromString,
         logistic: logistic,
         identity: identity,

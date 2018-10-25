@@ -125,7 +125,7 @@ var readModelFromString = function readModelFromString(buf, cb) {
     }
 
     let multiClassBits = 0;
-    let ml = oaa;
+    let ml = oaa - 1;
     while (ml > 0) {
         multiClassBits++;
         ml >>= 1;
